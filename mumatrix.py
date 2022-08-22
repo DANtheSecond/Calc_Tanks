@@ -3,7 +3,7 @@ import numpy as np
 tab_p = [1.25, 1.5, 3, 5, 10]   #x 3 (cubic approximation)
 tab_b = [0, 1, 2, 4, 7, 10, 20] #y 4 (exponential approximation)
 tab_k = [1, 3, 5, 10]           #k 2 (cubic approximation)
-tab_musR = [0, 1, 2, 3, 5, 10]  #z 1 (power approximation (excluding 0)
+tab_musR = [0, 1, 2, 3, 5, 10]  #z 1 (power approximation
 
 st0 = [1.084, 7.366e-1, 1.777e-1, 6.323e-2, 1.573e-2]
 st1 = [2.972e-1, 2.265e-1, 6.301e-2, 2.298e-2, 5.571e-3]
