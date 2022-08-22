@@ -2,14 +2,14 @@ import numpy as np
 #in case x[0] = 0, approximates with y(x) = a*(x+c)^b
 tab_x = [0., 1., 2., 3., 5., 10.]
 tab_y = [1.084, 5.600e-1, 3.550e-1, 2.600e-1, 1.500e-1, 8.000e-2]
-x1 = 4
+x1 = 5
 def ApproxPov(x, y, x1):
     if x[0] == 0:
         A0 = np.array([[0., 0.],
                        [0., 0.]])
         A1 = np.array([[0., 0.],
                        [0., 0.]])
-        ones = np.ones(len(tab_x))
+        ones = np.ones(len(x))
         A0[0, 0] = np.sum(np.log(y))
         A0[0, 1] = np.sum(np.log(x+ones))
         A0[1, 0] = np.sum(np.log(y)*np.log(x+ones))

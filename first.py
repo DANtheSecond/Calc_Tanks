@@ -5,8 +5,8 @@ from scipy.interpolate import CubicSpline
 E = float(input('Введите энергию, МэВ: '))
 mat = 1.5 #'Вода' #input('Введите материал защиты:')
 
-Table_mat = [1, 1.5, 3]#['Вода','Бетон','Свинец'] #x
-Table_E = [0.01, 0.015, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.1, 0.145, 0.15, 0.2, 0.279, 0.3, 0.4, 0.412, 0.5, 0.6, 0.662, 0.8, 1, 1.25, 1.5, 2, 2.75, 3, 4, 5, 6, 8, 10]  #y
+tab_mat = [1, 1.5, 3]#['Вода','Бетон','Свинец'] #x
+tab_E = np.array([0.01, 0.015, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.1, 0.145, 0.15, 0.2, 0.279, 0.3, 0.4, 0.412, 0.5, 0.6, 0.662, 0.8, 1, 1.25, 1.5, 2, 2.75, 3, 4, 5, 6, 8, 10])  #y
 
 st1 = [4.99, 60.3, 1390]
 st2 = [1.5, 18.4, 1210]
@@ -40,8 +40,8 @@ st29 = [0.0277, 0.0619, 0.494]
 st30 = [0.0243, 0.0561, 0.520]
 st31 = [0.0222, 0.0529, 0.55]
 
-Table_mu = np.array([st1, st2, st3, st4, st5, st6, st7, st8, st9, st10, st11, st12, st13, st14, st15, st16, st17, st18, st19, st20, st21, st22, st23, st24, st25, st26, st27, st28, st29, st30, st31])
-
+tab_mu = np.array([st1, st2, st3, st4, st5, st6, st7, st8, st9, st10, st11, st12, st13, st14, st15, st16, st17, st18, st19, st20, st21, st22, st23, st24, st25, st26, st27, st28, st29, st30, st31])
+print(tab_E.max())
 #функция линейной аппроксимации
 def lextrap2d(tab_x, tab_y, tab_z, x, y):
     if x >= tab_x[-1]:
@@ -65,11 +65,11 @@ def lextrap2d(tab_x, tab_y, tab_z, x, y):
     z = z1+(z2-z1)*(y-y1)/(y2-y1)
     return z
 
-mut = lextrap2d(Table_mat, Table_E, Table_mu, mat, E)
+mut = lextrap2d(tab_mat, tab_E, tab_mu, mat, E)
 print('lextrap2d: ', mut)
 
 #функция кубической аппроксимации
-def pextrap2d(tab_x, tab_y, tab_z, x, y):
+def ApproxCub(tab_x, tab_y, tab_z, x, y):
     zx = np.arange(float(len(tab_x)))
     zy = np.arange(float(len(tab_y)))
     for i in range(len(tab_y)):
@@ -81,17 +81,17 @@ def pextrap2d(tab_x, tab_y, tab_z, x, y):
     z = f(y)
     return z
 
-mut = pextrap2d(Table_mat, Table_E, Table_mu, mat, E)
-print('pextrap2d: ', mut)
+mut = ApproxCub(tab_mat, tab_E, tab_mu, mat, E)
+print('ApproxCub: ', mut)
 
-if E > Table_E[-1]:
-    E1 = Table_E[-1]
-    E2 = Table_E[-2]
+if E > tab_E[-1]:
+    E1 = tab_E[-1]
+    E2 = tab_E[-2]
 else:
-    for i in range(len(Table_E)-1):
-        if E > Table_E[i]:
-            E1 = Table_E[i]
-            E2 = Table_E[i+1]
+    for i in range(len(tab_E)-1):
+        if E > tab_E[i]:
+            E1 = tab_E[i]
+            E2 = tab_E[i+1]
 
-mu = Table_mu[Table_E.index(E1), Table_mat.index(mat)] + (Table_mu[Table_E.index(E2), Table_mat.index(mat)]-Table_mu[Table_E.index(E1), Table_mat.index(mat)])*(E-E1)/(E2-E1)
+mu = tab_mu[tab_E.index(E1), tab_mat.index(mat)] + (tab_mu[tab_E.index(E2), tab_mat.index(mat)]-tab_mu[tab_E.index(E1), tab_mat.index(mat)])*(E-E1)/(E2-E1)
 print('Расчёт: ', mu)
