@@ -2,7 +2,7 @@ import numpy as np
 #in case x[0] = 0, approximates with y(x) = a*(x+c)^b
 tab_x = [0., 1., 2., 3., 5., 10.]
 tab_y = [1.084, 5.600e-1, 3.550e-1, 2.600e-1, 1.500e-1, 8.000e-2]
-x1 = 5
+x1 = 15.73
 def ApproxPov(x, y, x1):
     if y[0] == 0:
         return 0

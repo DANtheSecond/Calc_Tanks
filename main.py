@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.interpolate import CubicSpline
-from mumatrix import tab_G
+
 
 # Input Data
 Task = int(input('Task type (1 - Side task; 2 - End task): '))
@@ -10,8 +10,10 @@ if Task == 1:
     h = float(input('Height level of the reference point, m: '))
 dt = int(input('Protection material (1 - Concrete; 2 - Lead; 3 - Iron): '))
 d = float(input('Protection thickness, mm: '))
-a = float(input('Distance from tank to the reference point: '))
+a = float(input('Distance from tank to the reference point, m: '))
+A = float(input('Activity level, Bq: '))
 E = float(input('Gamma energy, MeV: '))
+q = float(input('Emission rate, rel.un.: '))
 
 # Several tanks:
 # N = int(input('Tanks number: '))
@@ -22,6 +24,8 @@ E = float(input('Gamma energy, MeV: '))
 
 
 # Tables
+from mumatrix import tab_G
+from CoeffConv import tab_En, tab_Ga
 tab_E = np.array([0.01, 0.015, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.1, 0.145, 0.15, 0.2, 0.279, 0.3, 0.4, 0.412, 0.5,
                   0.6, 0.662, 0.8, 1, 1.25, 1.5, 2, 2.75, 3, 4, 5, 6, 8, 10])
 # tab_mu
@@ -192,12 +196,10 @@ if E > tab_E.max() or E < tab_E.min():
 else:
     mus = ApproxLin(tab_E, tab_mu[:, 0], E)
     mud = ApproxLin(tab_E, tab_mu[:, dt], E)
+print('μs =', mus)
+print('μd =', mud)
 musR = mus*R*100
-b = mud*d*10
-print('p = ', p)
-print('b = ', b)
-print('μsR = ', musR)
-print("k' = ", k1, "| k'' = ", k2)
+b = mud*d/10
 s = np.zeros(len(tab_musR))
 Gpbk = np.zeros((len(tab_k), len(tab_b), len(tab_p)))
 for i in range(len(tab_p)):
@@ -222,7 +224,6 @@ for i in range(len(tab_p)):
             Gpb2[j, i] = ApproxLin(tab_k, s, k2)
         else:
             Gpb2[j, i] = f(k2)
-print(Gpb2)
 s = np.zeros(len(tab_b))
 Gp1 = np.zeros(len(tab_p))
 Gp2 = np.zeros(len(tab_p))
@@ -233,14 +234,13 @@ for i in range(len(tab_p)):
     for j in range(len(tab_b)):
         s[j] = Gpb2[j, i]
     Gp2[i] = ApproxExp(tab_b, s, b)
-f = CubicSpline(tab_p, Gp1, extrapolate=True)
-G1 = f(p)
+G1 = ApproxPov(tab_p, Gp1, p)
 if k2 == 0:
     G2 = 0
 else:
-    f = CubicSpline(tab_p, Gp2, extrapolate=True)
-    G2 = f(p)
-
+    G2 = ApproxPov(tab_p, Gp2, p)
+V = H * 2 * np.pi * R**2
+D = 2 * A * ApproxLin(tab_En, tab_Ga, E) * q * R / V * (G1 + G2)
 
 #Results
 print('p = ', p)
@@ -248,3 +248,6 @@ print('b = ', b)
 print('μsR = ', musR)
 print("k' = ", k1, "| k'' = ", k2)
 print("G' = ", G1, "| G'' = ", G2)
+print('Г = ', ApproxLin(tab_En, tab_Ga, E) * q)
+print('V = ', V)
+print('D = ', D)

@@ -1,6 +1,6 @@
 import numpy as np
 
-tab_p = np.array([1.25, 1.5, 3, 5, 10])   #x 4 (cubic approximation)
+tab_p = np.array([1.25, 1.5, 3, 5, 10])   #x 4 (cubic/power approximation)
 tab_b = np.array([0, 1, 2, 4, 7, 10, 20]) #y 3 (exponential approximation)
 tab_k = np.array([0, 1, 3, 5, 10])        #k 2 (cubic approximation)
 tab_musR = np.array([0, 1, 2, 3, 5, 10])  #z 1 (power approximation)
@@ -238,155 +238,154 @@ tab_G = np.array([musR0, musR1, musR2, musR3, musR4, musR5])
 
 
 # Test:
-# print(tab_G[5, 3, 3, 3])
-# from scipy.interpolate import CubicSpline
-# def ApproxPov(x, y, x1):
-#     if y[0] == 0:
-#         return 0
-#     if x[0] == 0:
-#         A0 = np.array([[0., 0.],
-#                        [0., 0.]])
-#         A1 = np.array([[0., 0.],
-#                        [0., 0.]])
-#         ones = np.ones(len(x))
-#         A0[0, 0] = np.sum(np.log(y))
-#         A0[0, 1] = np.sum(np.log(x+ones))
-#         A0[1, 0] = np.sum(np.log(y)*np.log(x+ones))
-#         A1[0, 0] = float(len(x))
-#         A1[0, 1] = np.sum(np.log(x+ones))
-#         A1[1, 0] = np.sum(np.log(x+ones))
-#         for i in range(len(x)):
-#             A0[1, 1] += np.log(x[i]+1)**2
-#             A1[1, 1] += np.log(x[i]+1)**2
-#         a = np.exp(np.linalg.det(A0)/np.linalg.det(A1))
-#         # print('a = ', a)
-#         A0[0, 0] = float(len(x))
-#         A0[0, 1] = np.sum(np.log(y))
-#         A0[1, 0] = np.sum(np.log(x+ones))
-#         A0[1, 1] = np.sum(np.log(y)*np.log(x+ones))
-#         A1[0, 0] = float(len(x))
-#         A1[0, 1] = np.sum(np.log(x+ones))
-#         A1[1, 0] = np.sum(np.log(x+ones))
-#         A1[1, 1] = 0
-#         for i in range(len(x)):
-#             A1[1, 1] += np.log(x[i]+1)**2
-#         b = np.linalg.det(A0)/np.linalg.det(A1)
-#         # print('b = ', b)
-#         c = (y[0]/a)**(-b)
-#         # print('c = ', c)
-#         return(a*(x1+c)**b)
-#     else:
-#         A0 = np.array([[0., 0.],
-#                        [0., 0.]])
-#         A1 = np.array([[0., 0.],
-#                        [0., 0.]])
-#         A0[0, 0] = np.sum(np.log(y))
-#         A0[0, 1] = np.sum(np.log(x))
-#         A0[1, 0] = np.sum(np.log(y)*np.log(x))
-#         A1[0, 0] = float(len(x))
-#         A1[0, 1] = np.sum(np.log(x))
-#         A1[1, 0] = np.sum(np.log(x))
-#         for i in range(len(x)):
-#             A0[1, 1] += np.log(x[i])**2
-#             A1[1, 1] += np.log(x[i])**2
-#         a = np.exp(np.linalg.det(A0)/np.linalg.det(A1))
-#         # print('a = ', a)
-#         A0[0, 0] = float(len(x))
-#         A0[0, 1] = np.sum(np.log(y))
-#         A0[1, 0] = np.sum(np.log(x))
-#         A0[1, 1] = np.sum(np.log(y)*np.log(x))
-#         A1[0, 0] = float(len(x))
-#         A1[0, 1] = np.sum(np.log(x))
-#         A1[1, 0] = np.sum(np.log(x))
-#         A1[1, 1] = 0
-#         for i in range(len(x)):
-#             A1[1, 1] += np.log(x[i])**2
-#         b = np.linalg.det(A0)/np.linalg.det(A1)
-#         # print('b = ', b)
-#         return(a*x1**b)
-# def ApproxExp(x, y, x1):
-#     A0 = np.array([[0., 0.],
-#                    [0., 0.]])
-#     A1 = np.array([[0., 0.],
-#                    [0., 0.]])
-#     A0[0, 0] = np.sum(np.log(y))
-#     A0[0, 1] = np.sum(x)
-#     A0[1, 0] = np.sum(np.log(y)*x)
-#     A1[0, 0] = float(len(x))
-#     A1[0, 1] = np.sum(x)
-#     A1[1, 0] = np.sum(x)
-#     for i in range(len(x)):
-#         A0[1, 1] += x[i]**2
-#         A1[1, 1] += x[i]**2
-#     a = np.exp(np.linalg.det(A0)/np.linalg.det(A1))
-#     A0[0, 0] = float(len(x))
-#     A0[0, 1] = np.sum(np.log(y))
-#     A0[1, 0] = np.sum(x)
-#     A0[1, 1] = np.sum(np.log(y)*x)
-#     A1[0, 0] = float(len(x))
-#     A1[0, 1] = np.sum(x)
-#     A1[1, 0] = np.sum(x)
-#     A1[1, 1] = 0
-#     for i in range(len(x)):
-#         A1[1, 1] += x[i]**2
-#     b = np.linalg.det(A0)/np.linalg.det(A1)
-#     return(a*np.exp(b*x1))
-# def ApproxCub(tab_x, tab_y, tab_z, x, y):
-#     zx = np.arange(float(len(tab_x)))
-#     zy = np.arange(float(len(tab_y)))
-#     for i in range(len(tab_y)):
-#         for j in range(len(tab_x)):
-#             zx[j] = tab_z[i, j]
-#         f = CubicSpline(tab_x, zx, extrapolate = True)
-#         zy[i] = f(x)
-#     f = CubicSpline(tab_y, zy, extrapolate = True)
-#     z = f(y)
-#     return z
-# def ApproxLin(x, y, x1):
-#     if x1 > x.max():
-#         x0 = x[-1]
-#         x2 = x[-2]
-#     else:
-#         x0 = x[0]
-#         x2 = x[1]
-#         for i in range(len(x)-1):
-#             if x1 > x[i]:
-#                 x0 = x[i]
-#                 x2 = x[i+1]
-#             else:
-#                 break
-#     z = y[np.where(x == x0)]+(y[np.where(x == x2)]-y[np.where(x == x0)])*(x1 - x0)/(x2 - x0)
-#     return z
-#
-# musR = 9.09
-# k = 0.16666667
-# b = 266
-# p = 1.66667
-# s = np.zeros(len(tab_musR))
-# Gpbk = np.zeros((len(tab_k), len(tab_b), len(tab_p)))
-# for i in range(len(tab_p)):
-#     for j in range(len(tab_b)):
-#         for n in range(len(tab_k)):
-#             for m in range(len(tab_musR)):
-#                 s[m] = tab_G[m, n, j, i]
-#             Gpbk[n, j, i] = ApproxPov(tab_musR, s, musR)
-# s = np.zeros(len(tab_k))
-# Gpb = np.zeros((len(tab_b), len(tab_p)))
-# for i in range(len(tab_p)):
-#     for j in range(len(tab_b)):
-#         for n in range(len(tab_k)):
-#             s[n] = Gpbk[n, j, i]
-#         f = CubicSpline(tab_k, s, extrapolate=True)
-#         if f(k) < 0:
-#             Gpb[j, i] = ApproxLin(tab_k, s, k)
-#         else:
-#             Gpb[j, i] = f(k)
-# s = np.zeros(len(tab_b))
-# Gp = np.zeros(len(tab_p))
-# for i in range(len(tab_p)):
-#     for j in range(len(tab_b)):
-#         s[j] = Gpb[j, i]
-#     Gp[i] = ApproxExp(tab_b, s, b)
-# f = CubicSpline(tab_p, Gp, extrapolate=True)
-# G = f(p)
-# print(G)
+print(tab_G[5, 3, 3, 3])
+from scipy.interpolate import CubicSpline
+def ApproxPov(x, y, x1):
+    if y[0] == 0:
+        return 0
+    if x[0] == 0:
+        A0 = np.array([[0., 0.],
+                       [0., 0.]])
+        A1 = np.array([[0., 0.],
+                       [0., 0.]])
+        ones = np.ones(len(x))
+        A0[0, 0] = np.sum(np.log(y))
+        A0[0, 1] = np.sum(np.log(x+ones))
+        A0[1, 0] = np.sum(np.log(y)*np.log(x+ones))
+        A1[0, 0] = float(len(x))
+        A1[0, 1] = np.sum(np.log(x+ones))
+        A1[1, 0] = np.sum(np.log(x+ones))
+        for i in range(len(x)):
+            A0[1, 1] += np.log(x[i]+1)**2
+            A1[1, 1] += np.log(x[i]+1)**2
+        a = np.exp(np.linalg.det(A0)/np.linalg.det(A1))
+        # print('a = ', a)
+        A0[0, 0] = float(len(x))
+        A0[0, 1] = np.sum(np.log(y))
+        A0[1, 0] = np.sum(np.log(x+ones))
+        A0[1, 1] = np.sum(np.log(y)*np.log(x+ones))
+        A1[0, 0] = float(len(x))
+        A1[0, 1] = np.sum(np.log(x+ones))
+        A1[1, 0] = np.sum(np.log(x+ones))
+        A1[1, 1] = 0
+        for i in range(len(x)):
+            A1[1, 1] += np.log(x[i]+1)**2
+        b = np.linalg.det(A0)/np.linalg.det(A1)
+        # print('b = ', b)
+        c = (y[0]/a)**(-b)
+        # print('c = ', c)
+        return(a*(x1+c)**b)
+    else:
+        A0 = np.array([[0., 0.],
+                       [0., 0.]])
+        A1 = np.array([[0., 0.],
+                       [0., 0.]])
+        A0[0, 0] = np.sum(np.log(y))
+        A0[0, 1] = np.sum(np.log(x))
+        A0[1, 0] = np.sum(np.log(y)*np.log(x))
+        A1[0, 0] = float(len(x))
+        A1[0, 1] = np.sum(np.log(x))
+        A1[1, 0] = np.sum(np.log(x))
+        for i in range(len(x)):
+            A0[1, 1] += np.log(x[i])**2
+            A1[1, 1] += np.log(x[i])**2
+        a = np.exp(np.linalg.det(A0)/np.linalg.det(A1))
+        # print('a = ', a)
+        A0[0, 0] = float(len(x))
+        A0[0, 1] = np.sum(np.log(y))
+        A0[1, 0] = np.sum(np.log(x))
+        A0[1, 1] = np.sum(np.log(y)*np.log(x))
+        A1[0, 0] = float(len(x))
+        A1[0, 1] = np.sum(np.log(x))
+        A1[1, 0] = np.sum(np.log(x))
+        A1[1, 1] = 0
+        for i in range(len(x)):
+            A1[1, 1] += np.log(x[i])**2
+        b = np.linalg.det(A0)/np.linalg.det(A1)
+        # print('b = ', b)
+        return(a*x1**b)
+def ApproxExp(x, y, x1):
+    A0 = np.array([[0., 0.],
+                   [0., 0.]])
+    A1 = np.array([[0., 0.],
+                   [0., 0.]])
+    A0[0, 0] = np.sum(np.log(y))
+    A0[0, 1] = np.sum(x)
+    A0[1, 0] = np.sum(np.log(y)*x)
+    A1[0, 0] = float(len(x))
+    A1[0, 1] = np.sum(x)
+    A1[1, 0] = np.sum(x)
+    for i in range(len(x)):
+        A0[1, 1] += x[i]**2
+        A1[1, 1] += x[i]**2
+    a = np.exp(np.linalg.det(A0)/np.linalg.det(A1))
+    A0[0, 0] = float(len(x))
+    A0[0, 1] = np.sum(np.log(y))
+    A0[1, 0] = np.sum(x)
+    A0[1, 1] = np.sum(np.log(y)*x)
+    A1[0, 0] = float(len(x))
+    A1[0, 1] = np.sum(x)
+    A1[1, 0] = np.sum(x)
+    A1[1, 1] = 0
+    for i in range(len(x)):
+        A1[1, 1] += x[i]**2
+    b = np.linalg.det(A0)/np.linalg.det(A1)
+    return(a*np.exp(b*x1))
+def ApproxCub(tab_x, tab_y, tab_z, x, y):
+    zx = np.arange(float(len(tab_x)))
+    zy = np.arange(float(len(tab_y)))
+    for i in range(len(tab_y)):
+        for j in range(len(tab_x)):
+            zx[j] = tab_z[i, j]
+        f = CubicSpline(tab_x, zx, extrapolate = True)
+        zy[i] = f(x)
+    f = CubicSpline(tab_y, zy, extrapolate = True)
+    z = f(y)
+    return z
+def ApproxLin(x, y, x1):
+    if x1 > x.max():
+        x0 = x[-1]
+        x2 = x[-2]
+    else:
+        x0 = x[0]
+        x2 = x[1]
+        for i in range(len(x)-1):
+            if x1 > x[i]:
+                x0 = x[i]
+                x2 = x[i+1]
+            else:
+                break
+    z = y[np.where(x == x0)]+(y[np.where(x == x2)]-y[np.where(x == x0)])*(x1 - x0)/(x2 - x0)
+    return z
+
+musR = 7.1856
+k = 0.39999999
+b = 7.934
+p = 13.866666667
+s = np.zeros(len(tab_musR))
+Gpbk = np.zeros((len(tab_k), len(tab_b), len(tab_p)))
+for i in range(len(tab_p)):
+    for j in range(len(tab_b)):
+        for n in range(len(tab_k)):
+            for m in range(len(tab_musR)):
+                s[m] = tab_G[m, n, j, i]
+            Gpbk[n, j, i] = ApproxPov(tab_musR, s, musR)
+s = np.zeros(len(tab_k))
+Gpb = np.zeros((len(tab_b), len(tab_p)))
+for i in range(len(tab_p)):
+    for j in range(len(tab_b)):
+        for n in range(len(tab_k)):
+            s[n] = Gpbk[n, j, i]
+        f = CubicSpline(tab_k, s, extrapolate=True)
+        if f(k) < 0:
+            Gpb[j, i] = ApproxLin(tab_k, s, k)
+        else:
+            Gpb[j, i] = f(k)
+s = np.zeros(len(tab_b))
+Gp = np.zeros(len(tab_p))
+for i in range(len(tab_p)):
+    for j in range(len(tab_b)):
+        s[j] = Gpb[j, i]
+    Gp[i] = ApproxExp(tab_b, s, b)
+G = ApproxPov(tab_p, Gp, p)
+print(G)
