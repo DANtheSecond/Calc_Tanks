@@ -4,83 +4,35 @@ import openpyxl as op
 
 
 # Input Data
-Task = int(input('Task type (1 - Side task; 2 - End task): '))
-R = float(input('Radius of the tank, m: '))
-H = float(input('Height of the tank, m: '))
+inp = op.load_workbook("input.xlsx", data_only=True).active
+if inp.cell(row=2, column=1).value == 'Radial':
+    Task = 1
+else:
+    Task = 2
+R = inp.cell(row=2, column=2).value
+H = inp.cell(row=2, column=3).value
 if Task == 1:
-    h = float(input('Height level of the reference point, m: '))
-dt = str(input('Protection materials separated by ", " (1 - Concrete; 2 - Lead; 3 - Iron): '))
-dt = np.fromstring(dt, dtype=int, sep=', ')
-d = str(input('Protection thickness separated by ", ", mm: '))
-d = np.fromstring(d, dtype=float, sep=', ')
-a = float(input('Distance from the tank axis to the reference point, m: '))
-inp = op.load_workbook("input.xlsx").active
-E = str(input('Energy separated by ", ", MeV: '))
-E = np.fromstring(E, dtype=float, sep=', ')
-q = str(input('Gamma emission separated by ", ", rel.un. ", ", MeV: '))
-q = np.fromstring(q, dtype=float, sep=', ')
-A = str(input('Activity ", ", Bq: '))
-A = np.fromstring(A, dtype=float, sep=', ')
-# E = str(input('Gamma energy, MeV: '))
-# E = np.fromstring(E, dtype=float, sep=', ')
-# A = str(input('Activity level, Bq: '))
-# A = np.fromstring(A, dtype=float, sep=', ')
-# q = str(input('Emission rate, rel.un.: '))
-# q = np.fromstring(q, dtype=float, sep=', ')
-
-
-# Several tanks:
-# N = int(input('Tanks number: '))
-# a = np.zeros(N)
-# for i in range(len(a)):
-#     print('Distance from tank №', i, 'to the reference point, m: ')
-#     a[i] = float(input())
+    h = inp.cell(row=2, column=4).value
+a = inp.cell(row=1, column=12).value
+dt = np.zeros(a).astype(int)
+d = np.zeros(a)
+for i in range(2, a+2):
+    dt[i-2] = inp.cell(row=i, column=12).value
+    d[i-2] = inp.cell(row=i, column=6).value
+a = inp.cell(row=2, column=7).value
+E = np.zeros(inp.max_row-1)
+q = np.zeros(inp.max_row-1)
+A = np.zeros(inp.max_row-1)
+for i in range(2, inp.max_row+1):
+    E[i-2] = inp.cell(row=i, column=9).value
+    q[i-2] = inp.cell(row=i, column=10).value
+    A[i-2] = inp.cell(row=i, column=11).value
 
 
 # Tables
-from mumatrix import tab_G
+from mumatrix import tab_p, tab_b, tab_k, tab_musR, tab_E, tab_mu, tab_G
 from CoeffConv import tab_En, tab_Ga
-tab_E = np.array([0.01, 0.015, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.1, 0.145, 0.15, 0.2, 0.279, 0.3, 0.4, 0.412, 0.5,
-                  0.6, 0.662, 0.8, 1, 1.25, 1.5, 2, 2.75, 3, 4, 5, 6, 8, 10])
-# tab_mu
-st1 = [4.99, 60.3, 1390, 1330]
-st2 = [1.5, 18.4, 1210, 440]
-st3 = [0.707, 7.87, 939, 196]
-st4 = [0.325, 2.48, 323, 61.3]
-st5 = [0.238, 1.22, 151, 26.8]
-st6 = [0.207, 0.784, 82.1, 14.2]
-st7 = [0.192, 0.596, 50.8, 8.72]
-st8 = [0.175, 0.442, 23.6, 4.22]
-st9 = [0.165, 0.382, 60.3, 2.6]
-st10 = [0.150, 0.320, 24.6, 1.51]
-st11 = [0.148, 0.317, 21.8, 1.39]
-st12 = [0.136, 0.285, 10.7, 1.06]
-st13 = [0.121, 0.253, 4.65, 0.865]
-st14 = [0.118, 0.246, 4.25, 0.833]
-st15 = [0.106, 0.219, 2.44, 0.717]
-st16 = [0.105, 0.216, 2.32, 0.707]
-st17 = [0.0966, 0.2, 1.7, 0.646]
-st18 = [0.0894, 0.185, 1.33, 0.595]
-st19 = [0.0857, 0.177, 1.18, 0.570]
-st20 = [0.0786, 0.163, 0.952, 0.520]
-st21 = [0.0706, 0.146, 0.771, 0.467]
-st22 = [0.0631, 0.131, 0.658, 0.422]
-st23 = [0.0575, 0.119, 0.577, 0.381]
-st24 = [0.0494, 0.103, 0.508, 0.333]
-st25 = [0.0410, 0.0874, 0.476, 0.291]
-st26 = [0.0397, 0.0837, 0.468, 0.284]
-st27 = [0.0340, 0.0734, 0.472, 0.260]
-st28 = [0.0303, 0.0665, 0.481, 0.248]
-st29 = [0.0277, 0.0619, 0.494, 0.240]
-st30 = [0.0243, 0.0561, 0.520, 0.234]
-st31 = [0.0222, 0.0529, 0.55, 0.234]
-tab_mu = np.array(
-    [st1, st2, st3, st4, st5, st6, st7, st8, st9, st10, st11, st12, st13, st14, st15, st16, st17, st18, st19, st20,
-     st21, st22, st23, st24, st25, st26, st27, st28, st29, st30, st31])
-tab_p = np.array([1.25, 1.5, 3, 5, 10])
-tab_b = np.array([0, 1, 2, 4, 7, 10, 20])
-tab_k = np.array([0, 1, 3, 5, 10])
-tab_musR = np.array([0, 1, 2, 3, 5, 10])
+
 
 # Functions
 def ApproxPov(x, y, x1):
@@ -192,12 +144,42 @@ def ApproxLin(x, y, x1):
     return z
 
 
+#Creating workbook
+results = op.Workbook()
+res = results.active
+res['A1'] = 'Energy, E, MeV'
+res['B1'] = 'Gamma emission, q, rel.un.'
+res['C1'] = 'Г, μSv*m2/(h*Bq).'
+res['D1'] = 'μs, rel.un.'
+res['E1'] = 'Protection material'
+res['F1'] = 'Protection thickness, mm'
+for i in range(2, len(d)+2):
+    res.cell(row=i, column=5).value = dt[i-2]
+    res.cell(row=i, column=6).value = d[i - 2]
+res['G1'] = 'Protection μ, rel.un.'
+res['H1'] = 'p, rel.un.'
+res['I1'] = "b, rel.un."
+res['J1'] = "k', rel.un."
+res['K1'] = 'k", rel.un.'
+res['L1'] = 'μsR, rel.un.'
+res['M1'] = "G', rel.un."
+res['N1'] = 'G", rel.un.'
+res['O1'] = 'D, μSv/h'
+res['P1'] = 'Total dose, μSv/h'
+
+
 # Calculations
 D = np.zeros(len(E))
+p = a / R
+k1 = (H - h) / R
+k2 = h / R
+res.cell(row=2, column=8).value = p
+res.cell(row=2, column=10).value = k1
+res.cell(row=2, column=11).value = k2
 for e in range(len(E)):
-    p = a / R
-    k1 = (H - h) / R
-    k2 = h / R
+    res.cell(row=e+2, column=1).value = E[e]
+    res.cell(row=e+2, column=2).value = q[e]
+    res.cell(row=e+2, column=3).value = float(ApproxLin(tab_En, tab_Ga, E[e]) * q[e])
     b = 0.
     mud = np.zeros(len(dt))
     if E[e] > tab_E.max() or E[e] < tab_E.min():
@@ -208,6 +190,7 @@ for e in range(len(E)):
             mus = ApproxPov(tab_E, tab_mu[:, 0], E[e])
     else:
         mus = ApproxLin(tab_E, tab_mu[:, 0], E[e])
+    res.cell(row=e+2, column=4).value = float(mus)
     print('μs =', mus)
     for i in range(len(dt)):
         if E[e] > tab_E.max() or E[e] < tab_E.min():
@@ -220,7 +203,9 @@ for e in range(len(E)):
             mud[i] = ApproxLin(tab_E, tab_mu[:, dt[i]], E[e])
         print('μd[', i, '] =', mud[i])
         b += (mud[i] * d[i]) / 10
-    musR = mus * R * 100
+    res.cell(row=e+2, column=9).value = b
+    musR = float(mus * R * 100)
+    res.cell(row=e+2, column=12).value = musR
     s = np.zeros(len(tab_musR))
     Gpbk = np.zeros((len(tab_k), len(tab_b), len(tab_p)))
     for i in range(len(tab_p)):
@@ -256,12 +241,15 @@ for e in range(len(E)):
             s[j] = Gpb2[j, i]
         Gp2[i] = ApproxExp(tab_b, s, b)
     G1 = ApproxPov(tab_p, Gp1, p)
+    res.cell(row=e+2, column=13).value = G1
     if k2 == 0:
         G2 = 0
     else:
         G2 = ApproxPov(tab_p, Gp2, p)
+    res.cell(row=e+2, column=14).value = G2
     V = H * 2 * np.pi * R ** 2
     D[e] = 2 * A[e] * ApproxLin(tab_En, tab_Ga, E[e]) * q[e] * R / V * (G1 + G2)
+    res.cell(row=e+2, column=15).value = D[e]
     print('D[',e,']= ', D[e], 'μSv/h')
 
 
@@ -273,6 +261,8 @@ for e in range(len(E)):
     print("G' = ", G1, "| G'' = ", G2)
     print('E = ', E[e])
     print('q = ', q[e])
-    print('Г = ', ApproxLin(tab_En, tab_Ga, E[e]) * q[e])
+    print('Г = ', float(ApproxLin(tab_En, tab_Ga, E[e]) * q[e]))
     print('V = ', V)
 print('Total dose rate, D = ', np.sum(D), 'μSv/h')
+res.cell(row=2, column=16).value = np.sum(D)
+results.save("Results.xlsx")
