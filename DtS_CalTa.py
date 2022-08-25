@@ -2,7 +2,6 @@ import numpy as np
 from scipy.interpolate import CubicSpline
 import openpyxl as op
 
-
 # Input Data
 inp = op.load_workbook("input.xlsx", data_only=True).active
 if inp.cell(row=2, column=1).value == 'Radial':
@@ -16,18 +15,17 @@ if Task == 1:
 a = inp.cell(row=1, column=12).value
 dt = np.zeros(a).astype(int)
 d = np.zeros(a)
-for i in range(2, a+2):
-    dt[i-2] = inp.cell(row=i, column=12).value
-    d[i-2] = inp.cell(row=i, column=6).value
+for i in range(2, a + 2):
+    dt[i - 2] = inp.cell(row=i, column=12).value
+    d[i - 2] = inp.cell(row=i, column=6).value
 a = inp.cell(row=2, column=7).value
-E = np.zeros(inp.max_row-1)
-q = np.zeros(inp.max_row-1)
-A = np.zeros(inp.max_row-1)
-for i in range(2, inp.max_row+1):
-    E[i-2] = inp.cell(row=i, column=9).value
-    q[i-2] = inp.cell(row=i, column=10).value
-    A[i-2] = inp.cell(row=i, column=11).value
-
+E = np.zeros(inp.max_row - 1)
+q = np.zeros(inp.max_row - 1)
+A = np.zeros(inp.max_row - 1)
+for i in range(2, inp.max_row + 1):
+    E[i - 2] = inp.cell(row=i, column=9).value
+    q[i - 2] = inp.cell(row=i, column=10).value
+    A[i - 2] = inp.cell(row=i, column=11).value
 
 # Tables
 from mumatrix import tab_p, tab_b, tab_k, tab_musR, tab_E, tab_mu, tab_G
@@ -93,7 +91,7 @@ def ApproxPov(x, y, x1):
         for i in range(len(x)):
             A1[1, 1] += np.log(x[i]) ** 2
         b = np.linalg.det(A0) / np.linalg.det(A1)
-        return(a * x1 ** b)
+        return (a * x1 ** b)
 
 
 def ApproxExp(x, y, x1):
@@ -124,7 +122,7 @@ def ApproxExp(x, y, x1):
     for i in range(len(x)):
         A1[1, 1] += x[i] ** 2
     b = np.linalg.det(A0) / np.linalg.det(A1)
-    return(a * np.exp(b * x1))
+    return (a * np.exp(b * x1))
 
 
 def ApproxLin(x, y, x1):
@@ -134,27 +132,27 @@ def ApproxLin(x, y, x1):
     else:
         x0 = x[0]
         x2 = x[1]
-        for i in range(len(x)-1):
+        for i in range(len(x) - 1):
             if x1 > x[i]:
                 x0 = x[i]
-                x2 = x[i+1]
+                x2 = x[i + 1]
             else:
                 break
-    z = y[np.where(x == x0)]+(y[np.where(x == x2)]-y[np.where(x == x0)])*(x1 - x0)/(x2 - x0)
+    z = y[np.where(x == x0)] + (y[np.where(x == x2)] - y[np.where(x == x0)]) * (x1 - x0) / (x2 - x0)
     return z
 
 
-#Creating workbook
+# Creating workbook
 results = op.Workbook()
 res = results.active
 res['A1'] = 'Energy, E, MeV'
 res['B1'] = 'Gamma emission, q, rel.un.'
-res['C1'] = 'Г, μSv*m2/(h*Bq).'
+res['C1'] = 'Г, μSv*m2/(h*Bq)'
 res['D1'] = 'μs, rel.un.'
 res['E1'] = 'Protection material'
 res['F1'] = 'Protection thickness, mm'
-for i in range(2, len(d)+2):
-    res.cell(row=i, column=5).value = dt[i-2]
+for i in range(2, len(d) + 2):
+    res.cell(row=i, column=5).value = dt[i - 2]
     res.cell(row=i, column=6).value = d[i - 2]
 res['G1'] = 'Protection μ, rel.un.'
 res['H1'] = 'p, rel.un.'
@@ -167,7 +165,6 @@ res['N1'] = 'G", rel.un.'
 res['O1'] = 'D, μSv/h'
 res['P1'] = 'Total dose, μSv/h'
 
-
 # Calculations
 D = np.zeros(len(E))
 p = a / R
@@ -177,9 +174,9 @@ res.cell(row=2, column=8).value = p
 res.cell(row=2, column=10).value = k1
 res.cell(row=2, column=11).value = k2
 for e in range(len(E)):
-    res.cell(row=e+2, column=1).value = E[e]
-    res.cell(row=e+2, column=2).value = q[e]
-    res.cell(row=e+2, column=3).value = float(ApproxLin(tab_En, tab_Ga, E[e]) * q[e])
+    res.cell(row=e + 2, column=1).value = E[e]
+    res.cell(row=e + 2, column=2).value = q[e]
+    res.cell(row=e + 2, column=3).value = float(ApproxLin(tab_En, tab_Ga, E[e]) * q[e])
     b = 0.
     mud = np.zeros(len(dt))
     if E[e] > tab_E.max() or E[e] < tab_E.min():
@@ -190,7 +187,7 @@ for e in range(len(E)):
             mus = ApproxPov(tab_E, tab_mu[:, 0], E[e])
     else:
         mus = ApproxLin(tab_E, tab_mu[:, 0], E[e])
-    res.cell(row=e+2, column=4).value = float(mus)
+    res.cell(row=e + 2, column=4).value = float(mus)
     print('μs =', mus)
     for i in range(len(dt)):
         if E[e] > tab_E.max() or E[e] < tab_E.min():
@@ -203,9 +200,9 @@ for e in range(len(E)):
             mud[i] = ApproxLin(tab_E, tab_mu[:, dt[i]], E[e])
         print('μd[', i, '] =', mud[i])
         b += (mud[i] * d[i]) / 10
-    res.cell(row=e+2, column=9).value = b
+    res.cell(row=e + 2, column=9).value = b
     musR = float(mus * R * 100)
-    res.cell(row=e+2, column=12).value = musR
+    res.cell(row=e + 2, column=12).value = musR
     s = np.zeros(len(tab_musR))
     Gpbk = np.zeros((len(tab_k), len(tab_b), len(tab_p)))
     for i in range(len(tab_p)):
@@ -241,19 +238,18 @@ for e in range(len(E)):
             s[j] = Gpb2[j, i]
         Gp2[i] = ApproxExp(tab_b, s, b)
     G1 = ApproxPov(tab_p, Gp1, p)
-    res.cell(row=e+2, column=13).value = G1
+    res.cell(row=e + 2, column=13).value = G1
     if k2 == 0:
         G2 = 0
     else:
         G2 = ApproxPov(tab_p, Gp2, p)
-    res.cell(row=e+2, column=14).value = G2
+    res.cell(row=e + 2, column=14).value = G2
     V = H * 2 * np.pi * R ** 2
     D[e] = 2 * A[e] * ApproxLin(tab_En, tab_Ga, E[e]) * q[e] * R / V * (G1 + G2)
-    res.cell(row=e+2, column=15).value = D[e]
-    print('D[',e,']= ', D[e], 'μSv/h')
+    res.cell(row=e + 2, column=15).value = D[e]
+    print('D[', e, ']= ', D[e], 'μSv/h')
 
-
-#Results
+# Results
     print('p = ', p)
     print('b = ', b)
     print('μsR = ', musR)

@@ -8,18 +8,3 @@ tab_mub = np.array([4.87, 1.32,	0.533, 0.154, 0.0701, 0.0431, 0.0328, 0.0264, 0.
 tab_Ga = np.zeros(len(tab_En))
 for i in range(len(tab_En)):
     tab_Ga [i] = 1275 * tab_En[i]*tab_mub[i]*3600*1e-12
-def ApproxLin(x, y, x1):
-    if x1 > x.max():
-        x0 = x[-1]
-        x2 = x[-2]
-    else:
-        x0 = x[0]
-        x2 = x[1]
-        for i in range(len(x)-1):
-            if x1 > x[i]:
-                x0 = x[i]
-                x2 = x[i+1]
-            else:
-                break
-    z = y[np.where(x == x0)]+(y[np.where(x == x2)]-y[np.where(x == x0)])*(x1 - x0)/(x2 - x0)
-    return z
