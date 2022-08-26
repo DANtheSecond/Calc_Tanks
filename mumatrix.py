@@ -436,7 +436,7 @@ musR3 = np.array([muk0, muk1, muk2, muk3])
 tab_Z = np.array([musR0, musR1, musR2, musR3])
 
 # Test:
-# print(tab_G[5, 3, 3, 3])
+# # print(tab_G[5, 3, 3, 3])
 # from scipy.interpolate import CubicSpline
 # def ApproxLog(x, y, x1):
 #     A0 = np.array([[0., 0.],
@@ -624,11 +624,11 @@ tab_Z = np.array([musR0, musR1, musR2, musR3])
 # else:
 #     G = ApproxLin(tab_p, Gp, p)
 # print(G)
-
-# musH = 0.4
-# b1 = 0
-# aH = 0.1
-# RH = 0.1
+#
+# musH = 3.441
+# b1 = 2.6618
+# aH = 1
+# RH = 1.25
 # s = np.zeros(len(tab_RH))
 # Gpbk = np.zeros((len(tab_aH), len(tab_b1), len(tab_musH)))
 # for i in range(len(tab_musH)):
