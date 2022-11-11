@@ -154,7 +154,7 @@ res['S2'] = 'Total dose, μSv/h'
 res['T2'] = "=SUM(Q:Q)"
 T = int(2)
 for t in range(N):
-    sht = 'Sheet'+str(t+1)
+    sht = 'Tank'+str(t+1)
     inp = op.load_workbook("input.xlsx", data_only=True)[sht]
     if inp.cell(row=2, column=1).value == 'Radial':
         Task = 1
@@ -185,13 +185,13 @@ for t in range(N):
     res.cell(row=T, column=1).value = 'Energy, E, MeV'
     res.cell(row=T, column=2).value = 'Gamma emission, q, rel.un.'
     res.cell(row=T, column=3).value = 'Г, μSv*m2/(h*Bq)'
-    res.cell(row=T, column=4).value = 'μs, rel.un.'
+    res.cell(row=T, column=4).value = 'μs, cm-1'
     res.cell(row=T, column=5).value = 'Protection material'
     res.cell(row=T, column=6).value = 'Protection thickness, δ, mm'
     for i in range(2, len(d) + 2):
         res.cell(row=T+i-1, column=5).value = dt[i - 2]
         res.cell(row=T+i-1, column=6).value = d[i - 2]
-    res.cell(row=T, column=7).value = 'Protection μ, rel.un.'
+    res.cell(row=T, column=7).value = 'Protection μ, cm-1'
     if Task == 1:
         res.cell(row=T, column=8).value = 'p, rel.un.'
         res.cell(row=T, column=9).value = "b, rel.un."
@@ -204,7 +204,7 @@ for t in range(N):
         res.cell(row=T, column=8).value = 'μsh, rel.un.'
         res.cell(row=T, column=9).value = "b, rel.un."
         res.cell(row=T, column=10).value = "a/h, rel.un."
-        res.cell(row=T, column=11).value = 'R/h, rel.un.'
+        res.cell(row=T, column=12).value = 'R/h, rel.un.'
         res.cell(row=T, column=13).value = "Z, rel.un."
     res.cell(row=T, column=15).value = 'D, μSv/h'
     res.cell(row=T, column=16).value = 'Dose from tank №' + str(t+1) + ', μSv/h'
@@ -305,7 +305,7 @@ for t in range(N):
                 else:
                     G2 = float(ApproxLin(tab_p, Gp2, p))
             res.cell(row=T + e + 1, column=14).value = G2
-            V = H * 2 * np.pi * R ** 2
+            V = H * np.pi * R ** 2
             D[e] = 2 * A[e] * ApproxLin(tab_En, tab_Ga, E[e]) * q[e] * R / V * (G1 + G2)
             res.cell(row=T + e + 1, column=15).value = D[e]
             print('p = ', p)
@@ -362,22 +362,20 @@ for t in range(N):
                     for n in range(len(tab_aH)):
                         for m in range(len(tab_RH)):
                             s[m] = tab_Z[m, n, j, i]
-                        f = CubicSpline(tab_RH, s, extrapolate=True)
-                        if RH > tab_RH[-1] or f(RH) < 0:
+                        if RH > tab_RH[-1]:
                             Gpbk[n, j, i] = ApproxLog(tab_RH, s, RH)
                         else:
-                            Gpbk[n, j, i] = f(RH)
+                            Gpbk[n, j, i] = ApproxLin(tab_RH, s, RH)
             s = np.zeros(len(tab_aH))
             Gpb = np.zeros((len(tab_b1), len(tab_musH)))
             for i in range(len(tab_musH)):
                 for j in range(len(tab_b1)):
                     for n in range(len(tab_aH)):
                         s[n] = Gpbk[n, j, i]
-                    f = CubicSpline(tab_aH, s, extrapolate=True)
-                    if aH > tab_aH[-1] or f(aH) < 0:
+                    if aH > tab_aH[-1]:
                         Gpb[j, i] = ApproxExp(tab_aH, s, aH)
                     else:
-                        Gpb[j, i] = f(aH)
+                        Gpb[j, i] = ApproxLin(tab_aH, s, aH)
             s = np.zeros(len(tab_b1))
             Gp = np.zeros(len(tab_musH))
             for i in range(len(tab_musH)):
@@ -387,14 +385,13 @@ for t in range(N):
                     Gp[i] = ApproxExp(tab_b1, s, b)
                 else:
                     Gp[i] = ApproxLin(tab_b1, s, b)
-            f = CubicSpline(tab_musH[0:(len(tab_musH)-1)], Gp[0:(len(tab_musH)-1)], extrapolate=True)
-            if f(musH) > tab_musH[-2] or f(musH) < 0:
-                Z = float(Gp[-1]*np.exp(np.log(Gp[-2] / Gp[-1]) / tab_musH[-2]*musH))
+            if musH > tab_musH[-2]:
+                Z = float(Gp[-1] * np.exp(tab_musH[-2] * np.log(Gp[-2] / Gp[-1]) / musH))
             else:
-                Z = float(f(musH))
+                Z = ApproxLin(tab_musH, Gp, musH)
             res.cell(row=T + e + 1, column=13).value = Z
-            V = H * 2 * np.pi * R ** 2
-            D[e] = 2 * A[e] * ApproxLin(tab_En, tab_Ga, E[e]) * q[e] * R / V * Z
+            V = H * np.pi * R ** 2
+            D[e] = 2 * np.pi * A[e] * ApproxLin(tab_En, tab_Ga, E[e]) * q[e] * Z / (V * 100 * mus)
             res.cell(row=T + e + 1, column=15).value = D[e]
             print('μsH = ', musH)
             print('b = ', b)
