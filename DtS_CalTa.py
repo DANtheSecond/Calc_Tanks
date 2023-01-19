@@ -3,6 +3,7 @@ from scipy.interpolate import CubicSpline
 import openpyxl as op
 from mumatrix import tab_p, tab_b, tab_k, tab_musR, tab_E, tab_mu, tab_G, tab_musH, tab_b1, tab_aH, tab_RH, tab_Z
 from CoeffConv import tab_En, tab_Ga
+from datetime import datetime
 
 # Functions
 def ApproxPov(x, y, x1):
@@ -146,8 +147,8 @@ def ApproxLog(x, y, x1):
 
 
 # Input Data
-inp = op.load_workbook("input.xlsx", data_only=True)['Tank1']
-N = inp.cell(row=3, column=1).value
+inp = op.load_workbook("input.xlsx", data_only=True)
+N = len(inp.worksheets)-1
 results = op.Workbook()
 res = results.active
 res['S2'] = 'Total dose, μSv/h'
@@ -155,7 +156,9 @@ res['T2'] = "=SUM(Q:Q)"
 T = int(2)
 for t in range(N):
     sht = 'Tank'+str(t+1)
+    print(sht)
     inp = op.load_workbook("input.xlsx", data_only=True)[sht]
+    rows = len([cell for cell in inp['I'] if cell.value])
     if inp.cell(row=2, column=1).value == 'Radial':
         Task = 1
     else:
@@ -171,10 +174,10 @@ for t in range(N):
         dt[i - 2] = inp.cell(row=1, column=i+11).value
         d[i - 2] = inp.cell(row=i, column=6).value
     a = inp.cell(row=2, column=7).value
-    E = np.zeros(inp.max_row - 1)
-    q = np.zeros(inp.max_row - 1)
-    A = np.zeros(inp.max_row - 1)
-    for i in range(2, inp.max_row + 1):
+    E = np.zeros(rows - 1)
+    q = np.zeros(rows - 1)
+    A = np.zeros(rows - 1)
+    for i in range(2, rows + 1):
         E[i - 2] = inp.cell(row=i, column=9).value
         q[i - 2] = inp.cell(row=i, column=10).value
         A[i - 2] = inp.cell(row=i, column=11).value
@@ -404,5 +407,6 @@ for t in range(N):
             print('V = ', V)
     print('Total dose rate, D = ', np.sum(D), 'μSv/h')
     res.cell(row=T, column=17).value = np.sum(D)
-    T += inp.max_row + 1
-results.save("Results.xlsx")
+    T += rows + 1
+now = datetime.now().strftime("%y%m%d%H%M%S")
+results.save("Results"+now+".xlsx")
