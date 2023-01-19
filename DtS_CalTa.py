@@ -408,5 +408,4 @@ for t in range(N):
     print('Total dose rate, D = ', np.sum(D), 'μSv/h')
     res.cell(row=T, column=17).value = np.sum(D)
     T += rows + 1
-now = datetime.now().strftime("%y%m%d%H%M%S")
-results.save("Results"+now+".xlsx")
+results.save("Results"+datetime.now().strftime("%y%m%d%H%M%S")+".xlsx")
