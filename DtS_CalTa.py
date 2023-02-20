@@ -10,11 +10,11 @@ def ApproxPov(x, y, x1):
     if y[0] == 0:
         return 0
     if x[0] == 0:
+        ones = np.ones(len(x))
         A0 = np.array([[0., 0.],
                        [0., 0.]])
         A1 = np.array([[0., 0.],
                        [0., 0.]])
-        ones = np.ones(len(x))
         A0[0, 0] = np.sum(np.log(y))
         A0[0, 1] = np.sum(np.log(x + ones))
         A0[1, 0] = np.sum(np.log(y) * np.log(x + ones))
@@ -37,7 +37,7 @@ def ApproxPov(x, y, x1):
             A1[1, 1] += np.log(x[i] + 1) ** 2
         b = np.linalg.det(A0) / np.linalg.det(A1)
         c = (y[0] / a) ** (-b)
-        return (a * (x1 + c) ** b)
+        return a * (x1 + c) ** b
     else:
         A0 = np.array([[0., 0.],
                        [0., 0.]])
@@ -64,8 +64,81 @@ def ApproxPov(x, y, x1):
         for i in range(len(x)):
             A1[1, 1] += np.log(x[i]) ** 2
         b = np.linalg.det(A0) / np.linalg.det(A1)
-        return (a * x1 ** b)
+        return a * x1 ** b
 
+def ApproxLog(x, y, x1):
+    if x[0] == 0:
+        ones = np.ones(len(x))
+        A0 = np.array([[0., 0.],
+                       [0., 0.]])
+        A1 = np.array([[0., 0.],
+                       [0., 0.]])
+        A0[0, 0] = np.sum(y)
+        A0[0, 1] = np.sum(np.log(x+ones))
+        A0[1, 0] = np.sum(y * np.log(x+ones))
+        A1[0, 0] = float(len(x))
+        A1[0, 1] = np.sum(np.log(x+ones))
+        A1[1, 0] = np.sum(np.log(x+ones))
+        for i in range(len(x)):
+            A0[1, 1] += np.log(x[i]+1) ** 2
+            A1[1, 1] += np.log(x[i]+1) ** 2
+        a = np.linalg.det(A0) / np.linalg.det(A1)
+        A0[0, 0] = float(len(x))
+        A0[0, 1] = np.sum(y)
+        A0[1, 0] = np.sum(np.log(x+ones))
+        A0[1, 1] = np.sum(y * np.log(x+ones))
+        A1[0, 0] = float(len(x))
+        A1[0, 1] = np.sum(np.log(x+ones))
+        A1[1, 0] = np.sum(np.log(x+ones))
+        A1[1, 1] = 0
+        for i in range(len(x)):
+            A1[1, 1] += np.log(x[i]+1) ** 2
+        b = np.linalg.det(A0) / np.linalg.det(A1)
+        c = np.exp((y[0] - a) / b)
+        print(a, b, c)
+        return a + b * np.log(x1 + c)
+    else:
+        A0 = np.array([[0., 0.],
+                       [0., 0.]])
+        A1 = np.array([[0., 0.],
+                       [0., 0.]])
+        A0[0, 0] = np.sum(y)
+        A0[0, 1] = np.sum(np.log(x))
+        A0[1, 0] = np.sum(y * np.log(x))
+        A1[0, 0] = float(len(x))
+        A1[0, 1] = np.sum(np.log(x))
+        A1[1, 0] = np.sum(np.log(x))
+        for i in range(len(x)):
+            A0[1, 1] += np.log(x[i]) ** 2
+            A1[1, 1] += np.log(x[i]) ** 2
+        a = np.linalg.det(A0) / np.linalg.det(A1)
+        A0[0, 0] = float(len(x))
+        A0[0, 1] = np.sum(y)
+        A0[1, 0] = np.sum(np.log(x))
+        A0[1, 1] = np.sum(y * np.log(x))
+        A1[0, 0] = float(len(x))
+        A1[0, 1] = np.sum(np.log(x))
+        A1[1, 0] = np.sum(np.log(x))
+        A1[1, 1] = 0
+        for i in range(len(x)):
+            A1[1, 1] += np.log(x[i]) ** 2
+        b = np.linalg.det(A0) / np.linalg.det(A1)
+        return a + b * np.log(x1)
+
+def ApproxLin(x, y, x1):
+    if x1 > x[-1]:
+        x0 = x[-1]
+        x2 = x[-2]
+    else:
+        x0 = x[0]
+        x2 = x[1]
+        for i in range(len(x) - 1):
+            if x1 > x[i]:
+                x0 = x[i]
+                x2 = x[i + 1]
+            else:
+                break
+    return y[np.where(x == x0)] + (y[np.where(x == x2)] - y[np.where(x == x0)]) * (x1 - x0) / (x2 - x0)
 
 def ApproxExp(x, y, x1):
     if y[0] == 0:
@@ -97,54 +170,40 @@ def ApproxExp(x, y, x1):
     b = np.linalg.det(A0) / np.linalg.det(A1)
     return (a * np.exp(b * x1))
 
-
-def ApproxLin(x, y, x1):
-    if x1 > x.max():
-        x0 = x[-1]
-        x2 = x[-2]
+approx_funcs = {
+    'exp': ApproxExp,
+    'pov': ApproxPov,
+    'log': ApproxLog,
+    'lin': ApproxLin
+}
+def Approx(x, y, x1, ap):
+    ap = approx_funcs.get(ap)
+    if x1 < x[0]:
+        if ApproxLin(x, y, x[0]) >= ap(x, y, x[0]):
+            return max(ApproxLin(x, y, x1), ap(x, y, x1))
+        else:
+            if y[0] < y[-1]:  # ascending
+                weight = (x1 - x[0]) / (x[0] - x[1])
+                if x1 < x[0] + x[0] - x[1]:
+                    return ApproxPov(x, y, x1)
+                else:
+                    return weight * ap(x, y, x1) + (1 - weight) * ApproxLin(x, y, x1)
+            else:  # descending
+                return min(y[-1], ap(x, y, x1))
+    elif x[0] <= x1 <= x[-1]:
+        return ApproxLin(x, y, x1)
     else:
-        x0 = x[0]
-        x2 = x[1]
-        for i in range(len(x) - 1):
-            if x1 > x[i]:
-                x0 = x[i]
-                x2 = x[i + 1]
-            else:
-                break
-    z = y[np.where(x == x0)] + (y[np.where(x == x2)] - y[np.where(x == x0)]) * (x1 - x0) / (x2 - x0)
-    return z
-
-
-def ApproxLog(x, y, x1):
-    A0 = np.array([[0., 0.],
-                   [0., 0.]])
-    A1 = np.array([[0., 0.],
-                   [0., 0.]])
-    A0[0, 0] = np.sum(y)
-    A0[0, 1] = np.sum(np.log(x))
-    A0[1, 0] = np.sum(y * np.log(x))
-    A1[0, 0] = float(len(x))
-    A1[0, 1] = np.sum(np.log(x))
-    A1[1, 0] = np.sum(np.log(x))
-    for i in range(len(x)):
-        A0[1, 1] += np.log(x[i]) ** 2
-        A1[1, 1] += np.log(x[i]) ** 2
-    a = np.linalg.det(A0) / np.linalg.det(A1)
-    print('a = ', a)
-    A0[0, 0] = float(len(x))
-    A0[0, 1] = np.sum(y)
-    A0[1, 0] = np.sum(np.log(x))
-    A0[1, 1] = np.sum(y * np.log(x))
-    A1[0, 0] = float(len(x))
-    A1[0, 1] = np.sum(np.log(x))
-    A1[1, 0] = np.sum(np.log(x))
-    A1[1, 1] = 0
-    for i in range(len(x)):
-        A1[1, 1] += np.log(x[i]) ** 2
-    b = np.linalg.det(A0) / np.linalg.det(A1)
-    print('b = ', b)
-    return (a + b * np.log(x1))
-
+        if ApproxLin(x, y, x[-1]) >= ap(x, y, x[-1]):
+            return max(ApproxLin(x, y, x1), ap(x, y, x1))
+        else:
+            if y[0] < y[-1]:  # ascending
+                weight = (x1 - x[-1]) / (x[-1] - x[-2])
+                if x1 > x[-1] + x[-1] - x[-2]:
+                    return ap(x, y, x1)
+                else:
+                    return weight * ap(x, y, x1) + (1 - weight) * ApproxLin(x, y, x1)
+            else:  # descending
+                return min(y[-1], ap(x, y, x1))
 
 # Input Data
 inp = op.load_workbook("input.xlsx", data_only=True)
@@ -167,11 +226,11 @@ for t in range(N):
     H = inp.cell(row=2, column=3).value
     if Task == 1:
         h = inp.cell(row=2, column=4).value
-    a = inp.cell(row=1, column=12).value
+    a = len([cell for cell in inp['F'] if cell.value]) - 1
     dt = np.zeros(a).astype(int)
     d = np.zeros(a)
     for i in range(2, a + 2):
-        dt[i - 2] = inp.cell(row=1, column=i+11).value
+        dt[i - 2] = inp.cell(row=i, column=5).value
         d[i - 2] = inp.cell(row=i, column=6).value
     a = inp.cell(row=2, column=7).value
     E = np.zeros(rows - 1)
@@ -189,12 +248,12 @@ for t in range(N):
     res.cell(row=T, column=2).value = 'Gamma emission, q, rel.un.'
     res.cell(row=T, column=3).value = 'Г, μSv*m2/(h*Bq)'
     res.cell(row=T, column=4).value = 'μs, cm-1'
-    res.cell(row=T, column=5).value = 'Protection material'
+    res.cell(row=T, column=5).value = 'Protection material (1 - Concrete; 2 - Lead; 3 - Iron)'
     res.cell(row=T, column=6).value = 'Protection thickness, δ, mm'
     for i in range(2, len(d) + 2):
         res.cell(row=T+i-1, column=5).value = dt[i - 2]
         res.cell(row=T+i-1, column=6).value = d[i - 2]
-    res.cell(row=T, column=7).value = 'Protection μ, cm-1'
+    res.cell(row=T, column=7).value = 'Protection, μ, cm-1'
     if Task == 1:
         res.cell(row=T, column=8).value = 'p, rel.un.'
         res.cell(row=T, column=9).value = "b, rel.un."
@@ -210,7 +269,7 @@ for t in range(N):
         res.cell(row=T, column=12).value = 'R/h, rel.un.'
         res.cell(row=T, column=13).value = "Z, rel.un."
     res.cell(row=T, column=15).value = 'D, μSv/h'
-    res.cell(row=T, column=16).value = 'Dose from tank №' + str(t+1) + ', μSv/h'
+    res.cell(row=T, column=16).value = 'Dose from Tank №' + str(t+1) + ', μSv/h'
 
     # Calculations
     D = np.zeros(len(E))
@@ -260,10 +319,7 @@ for t in range(N):
                     for n in range(len(tab_k)):
                         for m in range(len(tab_musR)):
                             s[m] = tab_G[m, n, j, i]
-                        if musR > tab_musR[-1]:
-                            Gpbk[n, j, i] = ApproxPov(tab_musR, s, musR)
-                        else:
-                            Gpbk[n, j, i] = ApproxLin(tab_musR, s, musR)
+                        Gpbk[n, j, i] = Approx(tab_musR, s, musR, 'pov')
             s = np.zeros(len(tab_k))
             Gpb1 = np.zeros((len(tab_b), len(tab_p)))
             Gpb2 = np.zeros((len(tab_b), len(tab_p)))
@@ -285,28 +341,19 @@ for t in range(N):
             for i in range(len(tab_p)):
                 for j in range(len(tab_b)):
                     s[j] = Gpb1[j, i]
-                if b > tab_b[-1]:
-                    Gp1[i] = ApproxExp(tab_b, s, b)
-                else:
-                    Gp1[i] = ApproxLin(tab_b, s, b)
+                Gp1[i] = Approx(tab_b, s, b, 'exp')
                 for j in range(len(tab_b)):
                     s[j] = Gpb2[j, i]
-                if b > tab_b[-1]:
-                    Gp2[i] = ApproxExp(tab_b, s, b)
-                else:
-                    Gp2[i] = ApproxLin(tab_b, s, b)
-            if p < tab_p[0] or p > tab_p[-1]:
-                G1 = float(ApproxPov(tab_p, Gp1, p))
+                Gp2[i] = Approx(tab_b, s, b, 'exp')
+            if k1 == 0:
+                G1 = 0
             else:
-                G1 = float(ApproxLin(tab_p, Gp1, p))
+                G1 = float(Approx(tab_p, Gp1, p, 'pov'))
             res.cell(row=T + e + 1, column=13).value = G1
             if k2 == 0:
                 G2 = 0
             else:
-                if p < tab_p[0] or p > tab_p[-1]:
-                    G2 = float(ApproxPov(tab_p, Gp2, p))
-                else:
-                    G2 = float(ApproxLin(tab_p, Gp2, p))
+                G2 = float(Approx(tab_p, Gp2, p, 'pov'))
             res.cell(row=T + e + 1, column=14).value = G2
             V = H * np.pi * R ** 2
             D[e] = 2 * A[e] * ApproxLin(tab_En, tab_Ga, E[e]) * q[e] * R / V * (G1 + G2)
@@ -365,29 +412,20 @@ for t in range(N):
                     for n in range(len(tab_aH)):
                         for m in range(len(tab_RH)):
                             s[m] = tab_Z[m, n, j, i]
-                        if RH > tab_RH[-1]:
-                            Gpbk[n, j, i] = ApproxLog(tab_RH, s, RH)
-                        else:
-                            Gpbk[n, j, i] = ApproxLin(tab_RH, s, RH)
+                        Gpbk[n, j, i] = Approx(tab_RH, s, RH, 'log')
             s = np.zeros(len(tab_aH))
             Gpb = np.zeros((len(tab_b1), len(tab_musH)))
             for i in range(len(tab_musH)):
                 for j in range(len(tab_b1)):
                     for n in range(len(tab_aH)):
                         s[n] = Gpbk[n, j, i]
-                    if aH > tab_aH[-1]:
-                        Gpb[j, i] = ApproxExp(tab_aH, s, aH)
-                    else:
-                        Gpb[j, i] = ApproxLin(tab_aH, s, aH)
+                    Gpb[j, i] = Approx(tab_aH, s, aH, 'exp')
             s = np.zeros(len(tab_b1))
             Gp = np.zeros(len(tab_musH))
             for i in range(len(tab_musH)):
                 for j in range(len(tab_b1)):
                     s[j] = Gpb[j, i]
-                if b > tab_b1[-1]:
-                    Gp[i] = ApproxExp(tab_b1, s, b)
-                else:
-                    Gp[i] = ApproxLin(tab_b1, s, b)
+                Gp[i] = Approx(tab_b1, s, b, 'exp')
             if musH > tab_musH[-2]:
                 Z = float(Gp[-1] * np.exp(tab_musH[-2] * np.log(Gp[-2] / Gp[-1]) / musH))
             else:
